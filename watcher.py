@@ -3,6 +3,7 @@ import pickle
 import os.path
 import base64
 import email
+import datetime
 from email.mime.audio import MIMEAudio
 from email.mime.base import MIMEBase
 from email.mime.image import MIMEImage
@@ -200,6 +201,26 @@ def modify_message(service, user_id, msg_id, msg_labels):
         print('An error occurred: %s' % error)
 
 
+def remember_sent_email(sent_email):
+    sent_emails_dict = load_sent_emails()
+    sent_emails_dict[sent_email] = datetime.datetime.now()
+    with open('emails.pickle', 'wb') as emails_save:
+        pickle.dump(sent_emails_dict, emails_save)
+
+
+def load_sent_emails():
+    sent_emails_dict = {}
+    if os.path.exists('emails.pickle'):
+        with open('emails.pickle', 'rb') as emails_save:
+            sent_emails_dict = pickle.load(emails_save)
+    now = datetime.datetime.now()
+    for e, d in sent_emails_dict.items():
+        if (now - d).days > 30:
+            del sent_emails_dict[e]
+
+    return sent_emails_dict
+
+
 def main():
     """Shows basic usage of the Gmail API.
     Lists the user's Gmail labels.
@@ -245,7 +266,8 @@ def main():
                     mail = get_message(service, 'me', m['id'])
                     in_body_email_address = extract_email_address(mail['snippet'])
                     print(in_body_email_address)
-                    if in_body_email_address:
+                    sent_emails = load_sent_emails()
+                    if in_body_email_address and in_body_email_address not in sent_emails:
                         with open('./template/greeting.html', 'r') as content_file:
                             content = content_file.read()
                             out_mail = create_message_with_attachment('me',
@@ -257,6 +279,7 @@ def main():
                             if sent is not None:
                                 labels_mod = {"addLabelIds": [update_label_id], "removeLabelIds": [label['id']]}
                                 modify_message(service, 'me', m['id'], labels_mod)
+                                remember_sent_email(in_body_email_address)
 
 
 if __name__ == '__main__':
