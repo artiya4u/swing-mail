@@ -105,7 +105,7 @@ def get_mime_message(service, user_id, msg_id):
 
 def extract_email_address(message):
     emails = re.search(r"[\w\.-]+@[\w\.-]+", message)
-    if emails:
+    if emails is None:
         return False
 
     return emails.group()
