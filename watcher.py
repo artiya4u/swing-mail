@@ -105,6 +105,9 @@ def get_mime_message(service, user_id, msg_id):
 
 def extract_email_address(message):
     emails = re.search(r"[\w\.-]+@[\w\.-]+", message)
+    if emails:
+        return False
+
     return emails.group()
 
 
@@ -280,6 +283,8 @@ def main():
                                 labels_mod = {"addLabelIds": [update_label_id], "removeLabelIds": [label['id']]}
                                 modify_message(service, 'me', m['id'], labels_mod)
                                 remember_sent_email(in_body_email_address)
+                    else:
+                        modify_message(service, 'me', m['id'], labels_mod)
 
 
 if __name__ == '__main__':
