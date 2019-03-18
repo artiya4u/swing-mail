@@ -270,6 +270,7 @@ def main():
                     in_body_email_address = extract_email_address(mail['snippet'])
                     print(in_body_email_address)
                     sent_emails = load_sent_emails()
+                    labels_mod = {"addLabelIds": [update_label_id], "removeLabelIds": [label['id']]}
                     if in_body_email_address and in_body_email_address not in sent_emails:
                         with open('./template/greeting.html', 'r') as content_file:
                             content = content_file.read()
@@ -280,7 +281,6 @@ def main():
                                                                       './template/attachments/image.jpg')
                             sent = send_message(service, 'me', out_mail)
                             if sent is not None:
-                                labels_mod = {"addLabelIds": [update_label_id], "removeLabelIds": [label['id']]}
                                 modify_message(service, 'me', m['id'], labels_mod)
                                 remember_sent_email(in_body_email_address)
                     else:
